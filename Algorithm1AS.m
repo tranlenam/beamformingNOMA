@@ -62,21 +62,33 @@ for iIter = 1:maxIteration
             -qadaptive*(mygamma(iUser)-gamma0(iUser))^2;
     end
     
-    F = [w(:)'*w(:) <= Ptx]; % % sum power constraint
+    %F = [w(:)'*w(:) <= Ptx]; % % sum power constraint
+    F = [cone(w(:),sqrt(Ptx))]; % sum power constraint
     F = [F,mygamma(:) >=0];
     % (10c)
     for iUser = 1:nUsers
         for jUser = 1:nUsers-1
+            %{
             F = [F,InnerProductApprox(h(:,iUser),w(:,jUser),w0(:,jUser)) ...
                 >= abs(h(:,iUser)'*w(:,jUser+1))^2];
+            %}
+            t = InnerProductApprox(h(:,iUser),w(:,jUser),w0(:,jUser));
+            F = [F,cone([h(:,iUser)'*w(:,jUser+1);(t-1)/2],...
+                (t+1)/2)]; % this is equivalent to t >= |h(:,iUser)'*w(:,jUser+1)|^2
+            
         end
     end
     % (11c)
     for iUser = 1:nUsers-1
         for jUser =iUser:nUsers
             interference = h(:,jUser)'*w(:,iUser+1:nUsers);
+            %{
             F = [F,QuadraticOverLinearApprox(h(:,jUser),w(:,iUser),w0(:,iUser),mygamma(iUser),gamma0(iUser))...
                 >=(effnoisepower+sum(abs(interference).^2))];
+            %}
+            t = QuadraticOverLinearApprox(h(:,jUser),w(:,iUser),...
+                w0(:,iUser),mygamma(iUser),gamma0(iUser));
+            F = [F,cone([sqrt(effnoisepower);interference(:);(t-1)/2],(t+1)/2)];
         end
     end
     

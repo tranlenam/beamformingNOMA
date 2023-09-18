@@ -3,7 +3,7 @@ clc
 rng('default');
 
 nUsers = 3;
-nTx = 8;
+nTx = 128;
 f = 4000; %Signal frequency in MHz
 Ptx = 20; %Total transmit power in Watts
 Bw = 5; %Signal bandwidth in MHz
